@@ -82,8 +82,8 @@ class Downloader:
                 postprocessors.append({"key": "FFmpegMetadata", "add_metadata": True})
             if self.options.embed_thumbnail:
                 ydl_opts["writethumbnail"] = True
-                postprocessors.append({"key": "EmbedThumbnail", "already_have_thumbnail": False})
                 postprocessors.append({"key": "FFmpegThumbnailsConvertor", "format": "jpg"})
+                postprocessors.append({"key": "EmbedThumbnail", "already_have_thumbnail": False})
 
         else:
             # Video configuration
@@ -101,8 +101,8 @@ class Downloader:
                 postprocessors.append({"key": "FFmpegMetadata", "add_metadata": True})
             if self.options.embed_thumbnail:
                 ydl_opts["writethumbnail"] = True
-                postprocessors.append({"key": "EmbedThumbnail", "already_have_thumbnail": False})
                 postprocessors.append({"key": "FFmpegThumbnailsConvertor", "format": "jpg"})
+                postprocessors.append({"key": "EmbedThumbnail", "already_have_thumbnail": False})
 
         if postprocessors:
             ydl_opts["postprocessors"] = postprocessors

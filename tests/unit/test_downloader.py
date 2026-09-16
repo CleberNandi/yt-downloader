@@ -34,7 +34,11 @@ def test_build_ydl_opts_audio(tmp_path):
     postprocessor_keys = [p["key"] for p in opts.get("postprocessors", [])]
     assert "FFmpegExtractAudio" in postprocessor_keys
     assert "FFmpegMetadata" in postprocessor_keys
+    assert "FFmpegThumbnailsConvertor" in postprocessor_keys
     assert "EmbedThumbnail" in postprocessor_keys
+    assert postprocessor_keys.index("FFmpegThumbnailsConvertor") < postprocessor_keys.index(
+        "EmbedThumbnail"
+    )
 
 
 def test_build_ydl_opts_video(tmp_path):
