@@ -3,6 +3,10 @@ name = "yt-downloader"
 version = "0.2.0"
 description = "Modern YouTube video, audio, and playlist downloader powered by yt-dlp, Typer, and Rich."
 readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Cleber Nandi" },
+]
 requires-python = ">=3.14"
 dependencies = [
   "yt-dlp>=2025.1.0",

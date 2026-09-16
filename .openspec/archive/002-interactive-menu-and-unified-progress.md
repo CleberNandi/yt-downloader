@@ -104,3 +104,38 @@ Esta RFC implementa a reformulação completa da experiência de terminal (UX).
 - [x] Download DASH exibe apenas uma barra de progresso estável e sequencial.
 - [x] Comandos diretos continuam não-interativos e cobrem 100% dos testes unitários.
 - [x] Formatação com Ruff e tipagem estrita com Pyright sem erros.
+
+---
+
+## 6. Adendo de Refinamentos & Resiliência Pós-Validação
+
+Após validação prática em ambiente real, foram incorporadas as seguintes melhorias evolutivas:
+
+### 1. Migração para `InquirerPy.fuzzy` (Navegação Tripla)
+- **Motivação**: O prompt `select` original bloqueava a digitação livre de números (`1`, `2`, `3`) e palavras-chave.
+- **Implementação**: Adoção de `inquirer.fuzzy` em todas as seleções interativas, permitindo três métodos combinados:
+  - Navegação direcional por setas (`↑`/`↓`).
+  - Digitação direta de números de atalho.
+  - Filtro preditivo em tempo real por palavras (`video`, `audio`, `320`, `mp3`).
+
+### 2. Tratamento Gracioso de Opções Inválidas com Pausa e Limpeza
+- **Motivação**: Entradas sem correspondência retornavam `None`, disparando `sys.exit(0)` involuntário.
+- **Implementação**: Em `_safe_execute`:
+  - Captura retornos vazios sem encerrar o processo.
+  - Exibe alerta estilizado em vermelho e amarelo.
+  - Pausa aguardando interação do usuário (`Pressione Enter para voltar ao menu...`).
+  - Limpa a tela via `console.clear()` e re-renderiza o cabeçalho (`render_banner(console)`) antes de reexibir o menu sem poluição residual.
+
+### 3. Higienização de Logs e Supressão de Ticks de Progresso
+- **Motivação**: Notificações por fragmento de streaming inundavam o arquivo `logs/ytdl.log` com até 19.000 linhas repetitivas e códigos de escape ANSI por download.
+- **Implementação**: 
+  - Expressão regular stripping ANSI de todas as mensagens.
+  - Filtro em `YTDLLogger` descartando ticks intermediários de fragmentos e ETAs transitórios, preservando exclusivamente marcos significativos de rastreabilidade (extração de streams, resoluções, download/conversão de capa, mesclagem FFmpeg e sucesso).
+
+### 4. Tipografia 3D Shadow e Alinhamento Preciso de Bordas
+- **Motivação**: Fundo preenchido escuro gerava dentes/recortes no terminal devido a diferenças de contagem de largura de glifos unicode (`⚡` de 2 colunas no Rich vs 1 coluna na fonte do terminal).
+- **Implementação**:
+  - Remoção de fundo escuro para transparência nativa do terminal.
+  - Substituição por marcador neutro `●` (1 célula mono universal).
+  - Padronização matemática das linhas da logo 3D Shadow para exatamente 62 colunas com centralização dinâmica do subtítulo.
+

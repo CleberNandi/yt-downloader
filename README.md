@@ -199,3 +199,9 @@ uv run pyright
 
 ## 🤖 AI Assistance & Agents
 See [AGENTS.md](AGENTS.md) for architectural guidelines, strict tooling rules, and agent roles when collaborating with AI assistants (Gemini, Antigravity, OpenAI Codex, Claude).
+
+---
+
+## 📄 License
+This project is open-sourced under the [MIT License](LICENSE).
+
