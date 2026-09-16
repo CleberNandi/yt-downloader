@@ -60,4 +60,5 @@ Video/
 *.ytdl
 
 # Logs
+logs/
 *.log
