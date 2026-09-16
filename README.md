@@ -130,15 +130,15 @@ export YTDL_DOWNLOAD_DIR="/path/to/my/downloads"
 
 ## 🪵 Observability & Logs
 
-All download activities, yt-dlp diagnostic messages, and FFmpeg outputs are automatically recorded with rotation in:
-```text
-logs/ytdl.log
-```
-
-To enable real-time verbose debug logs on the terminal:
-```bash
-uv run ytdl video "https://www.youtube.com/watch?v=VIDEO_ID" --verbose
-```
+Logging is **automatic and background-managed** by default:
+- **Normal usage**: Run commands normally (e.g. `uv run ytdl`). All events, engine warnings, and FFmpeg outputs are automatically recorded with file rotation in:
+  ```text
+  logs/ytdl.log
+  ```
+- **Optional Debugging (`--verbose` / `-v`)**: If you need to troubleshoot or want to see full live engine diagnostics in your terminal, add `-v` or `--verbose`:
+  ```bash
+  uv run ytdl video "https://www.youtube.com/watch?v=VIDEO_ID" -v
+  ```
 
 ---
 
