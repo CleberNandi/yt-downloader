@@ -14,7 +14,6 @@ from rich.progress import (
     TimeRemainingColumn,
     TransferSpeedColumn,
 )
-from rich.prompt import Confirm, Prompt
 
 from yt_downloader.config import has_ffmpeg
 from yt_downloader.core.downloader import Downloader
@@ -26,6 +25,15 @@ from yt_downloader.core.models import (
     VideoResolution,
 )
 from yt_downloader.logger import setup_logging
+from yt_downloader.ui.banner import render_banner
+from yt_downloader.ui.prompts import (
+    prompt_audio_format,
+    prompt_audio_quality,
+    prompt_download_type,
+    prompt_playlist_mode,
+    prompt_video_resolution,
+    prompt_youtube_url,
+)
 
 app = typer.Typer(
     name="ytdl",
@@ -54,24 +62,38 @@ def _execute_download(options: DownloadOptions) -> None:
 
     with Progress(
         TextColumn("[bold cyan]{task.description}"),
-        BarColumn(),
+        BarColumn(bar_width=None),
         DownloadColumn(),
         TransferSpeedColumn(),
         TimeRemainingColumn(),
         console=console,
+        transient=True,
     ) as progress:
-        task_id = progress.add_task("Downloading...", total=None)
+        task_id = progress.add_task("Iniciando download...", total=None)
 
         def progress_hook(d: dict[str, Any]) -> None:
-            if d.get("status") == "downloading":
+            status = d.get("status")
+            if status == "downloading":
+                filename = str(d.get("filename", "")).lower()
                 total = d.get("total_bytes") or d.get("total_bytes_estimate")
                 downloaded = d.get("downloaded_bytes", 0)
-                if total:
-                    progress.update(task_id, total=total, completed=downloaded)
+
+                if options.download_type == DownloadType.AUDIO:
+                    desc = "[bold cyan]Baixando Áudio..."
+                elif any(ext in filename for ext in [".m4a", ".webm", ".f251", ".f140"]):
+                    desc = "[bold cyan][2/2] Baixando Áudio..."
                 else:
-                    progress.update(task_id, completed=downloaded)
-            elif d.get("status") == "finished":
-                progress.update(task_id, description="[bold green]Processing & Merging...")
+                    desc = "[bold cyan][1/2] Baixando Vídeo..."
+
+                if total:
+                    progress.update(task_id, description=desc, total=total, completed=downloaded)
+                else:
+                    progress.update(task_id, description=desc, completed=downloaded)
+            elif status == "finished":
+                progress.update(
+                    task_id,
+                    description="[bold yellow]Processando & Mesclando (FFmpeg)...",
+                )
 
         result = downloader.download(progress_hook=progress_hook)
 
@@ -251,55 +273,35 @@ def main(
     if ctx.invoked_subcommand is not None:
         return
 
-    console.print(
-        Panel.fit(
-            "[bold cyan]yt-downloader[/bold cyan] — Modern YouTube Downloader\n"
-            "[dim]Python 3.14 • uv • yt-dlp • FFmpeg[/dim]",
-            border_style="cyan",
-        )
-    )
+    render_banner(console)
 
-    choice = Prompt.ask(
-        "\nWhat would you like to download?",
-        choices=["video", "audio", "playlist", "exit"],
-        default="audio",
-    )
-
+    choice = prompt_download_type()
     if choice == "exit":
         raise typer.Exit()
 
-    url = Prompt.ask("Enter YouTube URL").strip()
-    if not url:
-        console.print("[red]URL cannot be empty.[/red]")
-        raise typer.Exit(code=1)
+    url = prompt_youtube_url()
 
     match choice:
         case "audio":
-            quality = Prompt.ask(
-                "Select Audio Quality (kbps)",
-                choices=["320", "256", "192", "128", "0"],
-                default="320",
-            )
+            quality = prompt_audio_quality()
+            fmt = prompt_audio_format()
             options = DownloadOptions(
                 url=url,
                 download_type=DownloadType.AUDIO,
-                audio_quality=AudioQuality(quality),
+                audio_quality=quality,
+                audio_format=fmt,
                 verbose=verbose,
             )
         case "video":
-            res = Prompt.ask(
-                "Select Resolution",
-                choices=["best", "1080", "720", "480"],
-                default="best",
-            )
+            res = prompt_video_resolution()
             options = DownloadOptions(
                 url=url,
                 download_type=DownloadType.VIDEO,
-                video_resolution=VideoResolution(res),
+                video_resolution=res,
                 verbose=verbose,
             )
         case "playlist":
-            is_audio = Confirm.ask("Download playlist as Audio (MP3)?", default=True)
+            is_audio = prompt_playlist_mode()
             options = DownloadOptions(
                 url=url,
                 download_type=DownloadType.AUDIO if is_audio else DownloadType.PLAYLIST,
