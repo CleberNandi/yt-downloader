@@ -40,6 +40,24 @@ def test_safe_execute_keyboard_interrupt():
     assert exc.value.code == 0
 
 
+@patch("yt_downloader.ui.prompts.render_banner")
+@patch("rich.console.Console.clear")
+@patch("rich.console.Console.input")
+def test_safe_execute_retries_on_invalid_input(mock_input, mock_clear, mock_banner):
+    mock_input.return_value = ""
+    attempts = [None, "valid_choice"]
+
+    def mock_prompt():
+        return attempts.pop(0)
+
+    result = _safe_execute(mock_prompt)
+    assert result == "valid_choice"
+    assert len(attempts) == 0
+    mock_input.assert_called_once()
+    mock_clear.assert_called_once()
+    mock_banner.assert_called_once()
+
+
 @patch("InquirerPy.inquirer.fuzzy")
 def test_prompt_download_type(mock_select):
     mock_instance = MagicMock()

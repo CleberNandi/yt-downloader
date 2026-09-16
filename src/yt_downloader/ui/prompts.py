@@ -1,31 +1,45 @@
 # pyright: reportPrivateImportUsage=false
 """Interactive prompts and selection menus powered by InquirerPy."""
 
+import contextlib
 import sys
 from collections.abc import Callable
 
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
 from InquirerPy.validator import EmptyInputValidator
+from rich.console import Console
 
 from yt_downloader.core.models import (
     AudioFormat,
     AudioQuality,
     VideoResolution,
 )
+from yt_downloader.ui.banner import render_banner
+
+console = Console()
 
 
 def _safe_execute[T](func: Callable[[], T]) -> T:
-    """Executes an interactive prompt safely, intercepting KeyboardInterrupt / Esc."""
-    try:
-        result = func()
-        if result is None:
-            print("\nOperação cancelada pelo usuário.")
+    """Executes an interactive prompt safely, retrying on invalid choices and handling Ctrl+C."""
+    while True:
+        try:
+            result = func()
+            if result is not None:
+                return result
+            console.print(
+                "\n[bold red]✗ Opção inválida ou não encontrada.[/bold red] "
+                "[yellow]Por favor, escolha uma das opções disponíveis na lista.[/yellow]"
+            )
+            with contextlib.suppress(EOFError, OSError):
+                console.input(
+                    "\n[dim]Pressione [bold white]Enter[/bold white] para voltar ao menu...[/dim] "
+                )
+            console.clear()
+            render_banner(console)
+        except KeyboardInterrupt:
+            console.print("\n\n[bold yellow]Operação cancelada pelo usuário.[/bold yellow]")
             sys.exit(0)
-        return result
-    except KeyboardInterrupt:
-        print("\n\nOperação cancelada pelo usuário.")
-        sys.exit(0)
 
 
 def prompt_download_type() -> str:
