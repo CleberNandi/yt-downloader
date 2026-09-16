@@ -25,6 +25,7 @@ from yt_downloader.core.models import (
     DownloadType,
     VideoResolution,
 )
+from yt_downloader.logger import setup_logging
 
 app = typer.Typer(
     name="ytdl",
@@ -47,6 +48,7 @@ def _check_system_ffmpeg() -> None:
 
 def _execute_download(options: DownloadOptions) -> None:
     """Runs the downloader with rich visual feedback."""
+    setup_logging(verbose=options.verbose)
     _check_system_ffmpeg()
     downloader = Downloader(options)
 
@@ -75,19 +77,35 @@ def _execute_download(options: DownloadOptions) -> None:
 
     if result.success:
         title = result.title or options.url
-        console.print(
-            Panel.fit(
-                f"[bold green]✓ Download finished successfully![/bold green]\n\n"
-                f"[bold]Title:[/bold] {title}\n"
-                f"[bold]Destination:[/bold] {downloader._resolve_output_dir()}",
-                title="yt-downloader",
-                border_style="green",
+        if result.warnings:
+            warnings_text = "\n".join(f"• [yellow]{w}[/yellow]" for w in result.warnings)
+            console.print(
+                Panel.fit(
+                    f"[bold yellow]✓ Download finished with warnings![/bold yellow]\n\n"
+                    f"[bold]Title:[/bold] {title}\n"
+                    f"[bold]Destination:[/bold] {downloader._resolve_output_dir()}\n\n"
+                    f"[bold]Warnings:[/bold]\n{warnings_text}\n\n"
+                    "[dim]Detailed execution logs saved to: logs/ytdl.log[/dim]",
+                    title="yt-downloader",
+                    border_style="yellow",
+                )
             )
-        )
+        else:
+            console.print(
+                Panel.fit(
+                    f"[bold green]✓ Download finished successfully![/bold green]\n\n"
+                    f"[bold]Title:[/bold] {title}\n"
+                    f"[bold]Destination:[/bold] {downloader._resolve_output_dir()}\n\n"
+                    "[dim]Detailed execution logs saved to: logs/ytdl.log[/dim]",
+                    title="yt-downloader",
+                    border_style="green",
+                )
+            )
     else:
         console.print(
             Panel.fit(
-                f"[bold red]✗ Download failed![/bold red]\n\n[red]{result.error_message}[/red]",
+                f"[bold red]✗ Download failed![/bold red]\n\n[red]{result.error_message}[/red]\n\n"
+                "[dim]Check detailed error logs in: logs/ytdl.log (or run with --verbose)[/dim]",
                 title="Error",
                 border_style="red",
             )
@@ -118,6 +136,10 @@ def download_video(
         bool,
         typer.Option("--no-metadata", help="Do not embed video metadata"),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose debug logging"),
+    ] = False,
 ) -> None:
     """Download a single YouTube video with best merged audio/video."""
     options = DownloadOptions(
@@ -128,6 +150,7 @@ def download_video(
         embed_thumbnail=not no_thumbnail,
         embed_metadata=not no_metadata,
         cookies_from_browser=cookies,
+        verbose=verbose,
     )
     _execute_download(options)
 
@@ -159,6 +182,10 @@ def download_audio(
         bool,
         typer.Option("--no-metadata", help="Do not embed audio ID3 tags"),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose debug logging"),
+    ] = False,
 ) -> None:
     """Download audio only (music/clips) converted to MP3/M4A with ID3 tags & cover art."""
     options = DownloadOptions(
@@ -170,6 +197,7 @@ def download_audio(
         embed_thumbnail=not no_thumbnail,
         embed_metadata=not no_metadata,
         cookies_from_browser=cookies,
+        verbose=verbose,
     )
     _execute_download(options)
 
@@ -193,6 +221,10 @@ def download_playlist(
         str | None,
         typer.Option("--cookies", "-c", help="Extract cookies from browser"),
     ] = None,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose debug logging"),
+    ] = False,
 ) -> None:
     """Download an entire YouTube playlist (video or audio-only)."""
     options = DownloadOptions(
@@ -202,12 +234,19 @@ def download_playlist(
         is_playlist=True,
         playlist_items=items,
         cookies_from_browser=cookies,
+        verbose=verbose,
     )
     _execute_download(options)
 
 
 @app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
+def main(
+    ctx: typer.Context,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Enable verbose debug logging"),
+    ] = False,
+) -> None:
     """Default entrypoint: launches interactive prompt if no command is given."""
     if ctx.invoked_subcommand is not None:
         return
@@ -245,6 +284,7 @@ def main(ctx: typer.Context) -> None:
                 url=url,
                 download_type=DownloadType.AUDIO,
                 audio_quality=AudioQuality(quality),
+                verbose=verbose,
             )
         case "video":
             res = Prompt.ask(
@@ -256,6 +296,7 @@ def main(ctx: typer.Context) -> None:
                 url=url,
                 download_type=DownloadType.VIDEO,
                 video_resolution=VideoResolution(res),
+                verbose=verbose,
             )
         case "playlist":
             is_audio = Confirm.ask("Download playlist as Audio (MP3)?", default=True)
@@ -263,6 +304,7 @@ def main(ctx: typer.Context) -> None:
                 url=url,
                 download_type=DownloadType.AUDIO if is_audio else DownloadType.PLAYLIST,
                 is_playlist=True,
+                verbose=verbose,
             )
         case _:
             raise typer.Exit(code=1)

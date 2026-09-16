@@ -14,6 +14,7 @@ from yt_downloader.core.models import (
     DownloadType,
     VideoResolution,
 )
+from yt_downloader.logger import YTDLLogger, get_logger
 
 
 class Downloader:
@@ -50,12 +51,12 @@ class Downloader:
             out_template = str(out_dir / "%(title)s.%(ext)s")
             noplaylist = True
 
+        logger = get_logger()
         ydl_opts: dict[str, Any] = {
             "outtmpl": out_template,
             "noplaylist": noplaylist,
-            "quiet": True,
-            "no_warnings": True,
             "windowsfilenames": True,  # Clean filenames on all platforms
+            "logger": YTDLLogger(logger),
         }
 
         if self.options.cookies_from_browser:
@@ -141,21 +142,55 @@ class Downloader:
 
         ydl_opts["progress_hooks"] = [internal_hook]
 
+        logger = get_logger()
+        logger.info(
+            "Starting download for URL: %s (type: %s)",
+            self.options.url,
+            self.options.download_type.value,
+        )
+
         try:
             with YoutubeDL(cast(Any, ydl_opts)) as ydl:
                 info = ydl.extract_info(self.options.url, download=True)
                 title = info.get("title") if info else None
+                logger.info("Download completed successfully: %s", title)
                 return DownloadResult(
                     success=True,
                     title=title,
                     file_paths=downloaded_files,
                 )
-        except DownloadError as err:
-            return DownloadResult(
-                success=False,
-                error_message=f"YouTube download error: {err}",
-            )
         except Exception as err:
+            existing_files = [p for p in downloaded_files if p.exists() and p.stat().st_size > 0]
+            out_dir = self._resolve_output_dir()
+            if not existing_files and out_dir.exists():
+                recent_media = [
+                    f
+                    for f in out_dir.glob("*")
+                    if f.is_file()
+                    and f.suffix.lower() in {".mp4", ".mp3", ".m4a", ".webm", ".flac", ".opus"}
+                    and f.stat().st_size > 0
+                ]
+                existing_files.extend(recent_media)
+
+            if existing_files:
+                logger.warning(
+                    "Download succeeded with post-processing warning: %s. Output files: %s",
+                    err,
+                    existing_files,
+                )
+                return DownloadResult(
+                    success=True,
+                    title=existing_files[0].stem,
+                    file_paths=existing_files,
+                    warnings=[f"Post-processing warning: {err}"],
+                )
+
+            logger.error("Download failed completely: %s", err, exc_info=True)
+            if isinstance(err, DownloadError):
+                return DownloadResult(
+                    success=False,
+                    error_message=f"YouTube download error: {err}",
+                )
             return DownloadResult(
                 success=False,
                 error_message=f"Unexpected error: {err}",

@@ -58,6 +58,7 @@ class DownloadOptions:
     cookies_from_browser: str | None = None
     is_playlist: bool = False
     playlist_items: str | None = None
+    verbose: bool = False
 
 
 @dataclass
@@ -67,4 +68,5 @@ class DownloadResult:
     success: bool
     title: str | None = None
     file_paths: list[Path] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     error_message: str | None = None

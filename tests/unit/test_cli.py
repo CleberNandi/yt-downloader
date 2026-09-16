@@ -54,3 +54,13 @@ def test_cli_audio_execution(mock_exec):
     assert options.url == url
     assert options.audio_quality.value == "320"
     assert options.audio_format.value == "mp3"
+
+
+@patch("yt_downloader.cli._execute_download")
+def test_cli_video_execution_verbose(mock_exec):
+    url = "https://www.youtube.com/watch?v=sample123"
+    result = runner.invoke(app, ["video", url, "--verbose"])
+    assert result.exit_code == 0
+    assert mock_exec.called
+    options = mock_exec.call_args[0][0]
+    assert options.verbose is True

@@ -105,3 +105,28 @@ def test_download_failure(mock_ytdl_class, tmp_path):
 
     assert result.success is False
     assert "YouTube download error" in (result.error_message or "")
+
+
+@patch("yt_downloader.core.downloader.YoutubeDL")
+def test_download_postprocessing_warning_resilience(mock_ytdl_class, tmp_path):
+    # Simulate a file already merged before post-processing threw error
+    merged_file = tmp_path / "My Awesome Video.mp4"
+    merged_file.write_bytes(b"dummy video content")
+
+    mock_instance = MagicMock()
+    mock_instance.extract_info.side_effect = FileNotFoundError("[Errno 2] No such file: thumb.webp")
+    mock_ytdl_class.return_value.__enter__.return_value = mock_instance
+
+    options = DownloadOptions(
+        url="https://www.youtube.com/watch?v=mock123",
+        download_type=DownloadType.VIDEO,
+        output_dir=tmp_path,
+    )
+    downloader = Downloader(options)
+    result = downloader.download()
+
+    assert result.success is True
+    assert result.title == "My Awesome Video"
+    assert len(result.warnings) == 1
+    assert "Post-processing warning" in result.warnings[0]
+    assert merged_file in result.file_paths
