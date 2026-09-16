@@ -40,7 +40,7 @@ def test_safe_execute_keyboard_interrupt():
     assert exc.value.code == 0
 
 
-@patch("InquirerPy.inquirer.select")
+@patch("InquirerPy.inquirer.fuzzy")
 def test_prompt_download_type(mock_select):
     mock_instance = MagicMock()
     mock_instance.execute.return_value = "audio"
@@ -60,7 +60,7 @@ def test_prompt_youtube_url(mock_text):
     assert result == "https://www.youtube.com/watch?v=123"
 
 
-@patch("InquirerPy.inquirer.select")
+@patch("InquirerPy.inquirer.fuzzy")
 def test_prompt_video_resolution(mock_select):
     mock_instance = MagicMock()
     mock_instance.execute.return_value = VideoResolution.P1080
@@ -70,7 +70,7 @@ def test_prompt_video_resolution(mock_select):
     assert result == VideoResolution.P1080
 
 
-@patch("InquirerPy.inquirer.select")
+@patch("InquirerPy.inquirer.fuzzy")
 def test_prompt_audio_quality(mock_select):
     mock_instance = MagicMock()
     mock_instance.execute.return_value = AudioQuality.Q320
@@ -80,7 +80,7 @@ def test_prompt_audio_quality(mock_select):
     assert result == AudioQuality.Q320
 
 
-@patch("InquirerPy.inquirer.select")
+@patch("InquirerPy.inquirer.fuzzy")
 def test_prompt_audio_format(mock_select):
     mock_instance = MagicMock()
     mock_instance.execute.return_value = AudioFormat.MP3
@@ -90,7 +90,7 @@ def test_prompt_audio_format(mock_select):
     assert result == AudioFormat.MP3
 
 
-@patch("InquirerPy.inquirer.select")
+@patch("InquirerPy.inquirer.fuzzy")
 def test_prompt_playlist_mode(mock_select):
     mock_instance = MagicMock()
     mock_instance.execute.return_value = True

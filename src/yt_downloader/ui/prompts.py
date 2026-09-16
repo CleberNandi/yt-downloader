@@ -20,7 +20,7 @@ def _safe_execute[T](func: Callable[[], T]) -> T:
     try:
         result = func()
         if result is None:
-            print("\n[dim]Operação cancelada pelo usuário.[/dim]")
+            print("\nOperação cancelada pelo usuário.")
             sys.exit(0)
         return result
     except KeyboardInterrupt:
@@ -29,9 +29,9 @@ def _safe_execute[T](func: Callable[[], T]) -> T:
 
 
 def prompt_download_type() -> str:
-    """Prompts for download type using arrow keys and numeric shortcuts."""
+    """Prompts for download type using arrow keys, numbers or fuzzy text."""
     return _safe_execute(
-        lambda: inquirer.select(
+        lambda: inquirer.fuzzy(
             message="O que você deseja baixar?",
             choices=[
                 Choice(value="audio", name="1) 🎵 Áudio / Música (MP3 com tags e capa)"),
@@ -39,8 +39,11 @@ def prompt_download_type() -> str:
                 Choice(value="playlist", name="3) 📑 Playlist Completa"),
                 Choice(value="exit", name="4) 🚪 Sair"),
             ],
-            default="audio",
+            default="",
             pointer="❯ ",
+            prompt="",
+            info=False,
+            instruction="(↑/↓ navegar • digite número ou texto • Enter confirma)",
         ).execute()
     )
 
@@ -68,7 +71,7 @@ def prompt_youtube_url() -> str:
 def prompt_video_resolution() -> VideoResolution:
     """Prompts for target video resolution."""
     return _safe_execute(
-        lambda: inquirer.select(
+        lambda: inquirer.fuzzy(
             message="Selecione a resolução máxima desejada:",
             choices=[
                 Choice(value=VideoResolution.BEST, name="1) 🌟 Melhor Disponível (Best / 4K)"),
@@ -76,8 +79,11 @@ def prompt_video_resolution() -> VideoResolution:
                 Choice(value=VideoResolution.P720, name="3) 📱 720p (HD)"),
                 Choice(value=VideoResolution.P480, name="4) 💾 480p (SD / Baixo consumo)"),
             ],
-            default=VideoResolution.BEST,
+            default="",
             pointer="❯ ",
+            prompt="",
+            info=False,
+            instruction="(↑/↓ navegar • digite número ou texto • Enter confirma)",
         ).execute()
     )
 
@@ -85,7 +91,7 @@ def prompt_video_resolution() -> VideoResolution:
 def prompt_audio_quality() -> AudioQuality:
     """Prompts for audio bitrate quality."""
     return _safe_execute(
-        lambda: inquirer.select(
+        lambda: inquirer.fuzzy(
             message="Selecione a qualidade do áudio:",
             choices=[
                 Choice(value=AudioQuality.Q320, name="1) 💎 320 kbps (Alta fidelidade)"),
@@ -94,8 +100,11 @@ def prompt_audio_quality() -> AudioQuality:
                 Choice(value=AudioQuality.Q128, name="4) 📦 128 kbps (Econômico)"),
                 Choice(value=AudioQuality.BEST, name="5) 🎛️ VBR Best (Taxa variável)"),
             ],
-            default=AudioQuality.Q320,
+            default="",
             pointer="❯ ",
+            prompt="",
+            info=False,
+            instruction="(↑/↓ navegar • digite número ou texto • Enter confirma)",
         ).execute()
     )
 
@@ -103,16 +112,19 @@ def prompt_audio_quality() -> AudioQuality:
 def prompt_audio_format() -> AudioFormat:
     """Prompts for output audio format."""
     return _safe_execute(
-        lambda: inquirer.select(
+        lambda: inquirer.fuzzy(
             message="Selecione o formato de áudio:",
             choices=[
                 Choice(value=AudioFormat.MP3, name="1) MP3 (Compatível com qualquer reprodutor)"),
                 Choice(value=AudioFormat.M4A, name="2) M4A / AAC (Ótimo para dispositivos Apple)"),
-                Choice(value=AudioFormat.FLAC, name="3) FLAC (Lossless de estúdio sem compressão)"),
+                Choice(value=AudioFormat.FLAC, name="3) FLAC (Lossless de estúdio)"),
                 Choice(value=AudioFormat.OPUS, name="4) OPUS (Codec nativo do YouTube)"),
             ],
-            default=AudioFormat.MP3,
+            default="",
             pointer="❯ ",
+            prompt="",
+            info=False,
+            instruction="(↑/↓ navegar • digite número ou texto • Enter confirma)",
         ).execute()
     )
 
@@ -120,13 +132,16 @@ def prompt_audio_format() -> AudioFormat:
 def prompt_playlist_mode() -> bool:
     """Prompts whether playlist should be downloaded as audio or video."""
     return _safe_execute(
-        lambda: inquirer.select(
+        lambda: inquirer.fuzzy(
             message="Como deseja baixar os itens da playlist?",
             choices=[
                 Choice(value=True, name="1) 🎵 Áudio (MP3 para cada música com capa)"),
                 Choice(value=False, name="2) 🎬 Vídeo (MP4 para cada vídeo)"),
             ],
-            default=True,
+            default="",
             pointer="❯ ",
+            prompt="",
+            info=False,
+            instruction="(↑/↓ navegar • digite número ou texto • Enter confirma)",
         ).execute()
     )
