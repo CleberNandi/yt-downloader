@@ -37,24 +37,63 @@ Modern, reliable, and high-performance YouTube downloader for Videos, Playlists,
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Installation
 
-Clone or open the repository and install the project with `uv`:
+### Option 1: Global CLI Tool (Recommended)
+Install globally with `uv tool` to execute `yt-downloader` or `ytdl` directly from **any directory** without `uv run`:
 
 ```bash
+# Install directly from GitHub (no clone needed)
+uv tool install git+https://github.com/CleberNandi/yt-downloader.git
+
+# Or install from your local cloned directory
+uv tool install .
+
+# Upgrade to latest version anytime
+uv tool upgrade yt-downloader
+```
+
+After installation, run anywhere:
+```bash
+yt-downloader
+# or the shorthand:
+ytdl
+```
+
+---
+
+### Option 2: Add to another Python project
+Add as a dependency in your own project using `uv`:
+
+```bash
+uv add git+https://github.com/CleberNandi/yt-downloader.git
+```
+
+---
+
+### Option 3: Local Development
+Clone the repository and install dependencies with:
+
+```bash
+git clone git@github.com:CleberNandi/yt-downloader.git
+cd yt-downloader
 uv sync
+uv run ytdl
 ```
 
 ---
 
 ## 📖 Usage Examples
 
+Both `yt-downloader` and `ytdl` can be used interchangeably. If running in a local clone without global installation, prefix with `uv run ytdl`.
+
 ### 1. Interactive Mode (Easiest)
-Simply run without arguments:
+Simply run without arguments to launch the interactive menu with arrow-key navigation (↑/↓) and numeric shortcuts (1, 2, 3...):
 ```bash
-uv run ytdl
+yt-downloader
+# or
+ytdl
 ```
-Follow the interactive prompt to choose video, audio, or playlist, select resolution/bitrate, and paste the URL.
 
 ---
 
