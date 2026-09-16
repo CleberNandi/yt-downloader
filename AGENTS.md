@@ -55,12 +55,23 @@ O **yt-downloader** é uma ferramenta de linha de comando (CLI) modular em Pytho
    - Testes unitários NUNCA devem fazer requisições reais ao YouTube nem baixar arquivos da internet.
    - Use `unittest.mock` para simular o comportamento de `yt_dlp.YoutubeDL`.
 
+6. **Fluxo de Especificação com OpenSpec (`.openspec/`)**:
+   - Para bugs pontuais ou ajustes de flags simples: fluxo direto com commits convencionais.
+   - Para **novas funcionalidades** ou **mudanças arquiteturais** (ex: fila assíncrona, integração com serviços, interfaces alternativas):
+     1. Criar uma proposta em `.openspec/active/<nome-da-feature>.md` baseada em `.openspec/TEMPLATE.md`.
+     2. Submeter para revisão e aprovação antes de iniciar a codificação.
+     3. Após implementação, testes e validações concluídos, arquivar a spec em `.openspec/archive/`.
+
 ---
 
 ## 4. Estrutura Arquitetural (`src/` Layout)
 
 ```text
 yt-downloader/
+├── .openspec/                    # Especificações e RFCs do projeto
+│   ├── TEMPLATE.md               # Modelo padronizado de RFC
+│   ├── active/                   # Specs em discussão ou em desenvolvimento
+│   └── archive/                  # Specs implementadas e arquivadas
 ├── src/
 │   └── yt_downloader/
 │       ├── __init__.py           # Versão e exports principais
