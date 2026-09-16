@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "davidanson.vscode-markdownlint",
+    "eamodio.gitlens",
+    "editorconfig.editorconfig",
+    "ms-azuretools.vscode-containers",
+    "ms-python.debugpy",
+    "ms-python.vscode-pylance",
+    "ms-python.python",
+    "ms-python.vscode-python-envs",
+    "openai.chatgpt",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml"
+  ]
+}

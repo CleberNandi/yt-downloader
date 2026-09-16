@@ -1,0 +1,30 @@
+minimum_pre_commit_version: "4.6.2"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # v6.0.0
+    hooks:
+      - id: no-commit-to-branch
+        args: [--branch, main]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff lint (locked project environment)
+        entry: uv run --locked ruff check
+        language: unsupported
+        types: [python]
+      - id: ruff-format-check
+        name: Ruff format check (locked project environment)
+        entry: uv run --locked ruff format --check
+        language: unsupported
+        types: [python]
